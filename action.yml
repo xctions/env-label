@@ -39,10 +39,10 @@ runs:
     - name: Filter env labels
       id: filter-labels
       shell: bash
-      env: 
-        LABELS: ${{ steps.fetch-labels.outputs.labels }}
       run: |
-        len=$(echo "$LABELS" | jq 'length')
+        labels=${{ steps.fetch-labels.outputs.labels }}
+        
+        len=$(echo "$labels" | jq 'length')
         echo  "len: $len"
 
         if [ "$len" -ne 1 ]; then
