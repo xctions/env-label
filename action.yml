@@ -29,7 +29,7 @@ runs:
         REPOSITORY: ${{ inputs.repository }}
         PR_NUMBER: ${{ inputs.pr_number }}
       run: |
-        output=$(./fetch_labels.sh)
+        output=$("${{ github.action_path }}/fetch_labels.sh")
         echo "labels=$output" >> $GITHUB_OUTPUT
 
     - name: Filter env labels
@@ -38,7 +38,7 @@ runs:
       env: 
         LABELS: ${{ steps.fetch-labels.outputs.labels }}
       run: |
-        output=$(./filter_labels.sh)
+        output=$("${{ github.action_path }}/filter_labels.sh")
         echo "env=$output" >> $GITHUB_OUTPUT
 
 
