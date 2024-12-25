@@ -26,12 +26,8 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
-        REPOSITORY: ${{ inputs.repository }}
-        PR_NUMBER: ${{ inputs.pr_number }}
       run: |
-        repo="repos/$REPOSITORY/issues/$PR_NUMBER/labels"
-
-        labels=$(gh api "$repo" --jq \
+        labels=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr_number }}/labels" --jq \
             '.[].name'
         )
 
