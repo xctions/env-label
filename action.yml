@@ -31,17 +31,9 @@ runs:
         labels_json=$(gh api "repos/xctions/xctions-tests/issues/21/labels")
         echo "labels_json: $labels_json"
 
-        filtered_labels=$(echo "$labels_json" | jq -c '[.[] | select(.name == "dev" or .name == "test" or .name == "stag" or .name == "qa" or .name == "prod") | .name]')
+        labels=$(echo "$labels_json" | jq -c '[.[] | select(.name == "dev" or .name == "test" or .name == "stag" or .name == "qa" or .name == "prod") | .name]')
         echo "filtered_labels: $filtered_labels"
-
-        echo "labels=$filered_labels" >> $GITHUB_OUTPUT
-
-    - name: Filter env labels
-      id: filter-labels
-      shell: bash
-      run: |
-        labels="${{ fromJSON(steps.fetch-labels.outputs.labels) }}"
-        echo "labels: $labels"
+        
         len=$(echo "$labels" | jq 'length')
         echo "len: $len"
 
