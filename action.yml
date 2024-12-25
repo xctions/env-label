@@ -18,10 +18,11 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: ./actions/log@main
 
     - name: Checkout repository
       uses: actions/checkout@v2
+      
+    - uses: ./actions/log@main
 
     - name: Fetch labels that a given PR has
       id: fetch-labels
