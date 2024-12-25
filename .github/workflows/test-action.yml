@@ -10,12 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set up GitHub CLI
-        uses: actions/setup-gh@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/checkout@v4
 
       - name: Create base branch
         run: |
@@ -34,11 +29,15 @@ jobs:
 
       - name: Create pull request
         id: create_pr
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           pr_url=$(gh pr create --base $base_branch --head $head_branch --title "Test PR" --body "This is a test PR")
           echo "pr_url=$pr_url" >> $GITHUB_ENV
 
       - name: Add label to PR
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           pr_number=$(gh pr view ${{ env.pr_url }} --json number --jq '.number')
           gh pr edit $pr_number --add-label "dev"
