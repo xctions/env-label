@@ -1,0 +1,68 @@
+name: "Print Message with Level"
+description: "A custom action to print a message with a specified level (info, error, debug)."
+
+inputs:
+  level:
+    description: "The level of the message (info, error, debug)"
+    required: true
+    default: "info"
+  message:
+    description: "The message to print"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Print message
+      shell: bash
+      run: |
+        sep="========================================="
+        
+        function INFO {
+          local message=$1
+          color_code='\033[92m'  # Green
+          reset_code='\033[0m'
+          echo -e "${color_code}${sep}${reset_code}"
+          echo -e "${color_code}${message}${reset_code}"
+          echo -e "${color_code}${sep}${reset_code}"
+          echo -e "\n"
+        }
+
+        function ERR {
+          local message=$1
+          color_code='\033[91m'  # Red
+          reset_code='\033[0m'
+          echo -e "${color_code}${sep}${reset_code}"
+          echo -e "${color_code}${message}${reset_code}"
+          echo -e "${color_code}${sep}${reset_code}"
+          echo -e "\n"
+        }
+
+        function DEBUG {
+          local message=$1
+          color_code='\033[94m'  # Blue
+          reset_code='\033[0m'
+          echo -e "${color_code}${sep}${reset_code}"
+          echo -e "${color_code}${message}${reset_code}"
+          echo -e "${color_code}${sep}${reset_code}"
+          echo -e "\n"
+        }
+
+        level="${{ inputs.level }}"
+        message="${{ inputs.message }}"
+
+        case $level in
+          info)
+            INFO "$message"
+            ;;
+          error)
+            ERR "$message"
+            ;;
+          debug)
+            DEBUG "$message"
+            ;;
+          *)
+            echo "Invalid level: $level. Must be one of: info, error, debug."
+            exit 1
+            ;;
+        esac
