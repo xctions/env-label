@@ -13,7 +13,7 @@ inputs:
     required: true
 outputs:
   env:
-    value: ${{ steps.label.outputs.env }}
+    value: ${{ steps.filter-labels.outputs.env }}
     description: "Environment label"
 runs:
   using: composite
@@ -23,7 +23,7 @@ runs:
       uses: actions/checkout@v2
 
     - name: Fetch labels that a given PR has
-      id: label
+      id: fetch-labels
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
@@ -31,19 +31,24 @@ runs:
         labels_json=$(gh api "repos/xctions/xctions-tests/issues/21/labels")
         echo "labels_json: $labels_json"
 
-        filtered_labels=$(echo "$labels_json" | jq -r '[.[] | select(.name == "dev" or .name == "test" or .name == "stag" or .name == "qa" or .name == "prod") | .name]')
+        filtered_labels=$(echo "$labels_json" | jq -c '[.[] | select(.name == "dev" or .name == "test" or .name == "stag" or .name == "qa" or .name == "prod") | .name]')
         echo "filtered_labels: $filtered_labels"
 
-        echo "labels=$filtered_labels" >> $GITHUB_OUTPUT
+        echo "labels=$filered_labels" >> $GITHUB_OUTPUT
 
-        len=$(echo "$filtered_labels" | jq 'length')
-        echo  "len: $len"
+    - name: Filter env labels
+      id: filter-labels
+      shell: bash
+      run: |
+        labels=${{ steps.fetch-labels.outputs.labels }}
+        len=$(echo "$labels" | jq 'length')
+        echo "len: $len"
 
         if [ "$len" -ne 1 ]; then
           echo "Error: Expected exactly one environment label, but found $len"
           exit 1
         fi
 
-        env=$(echo "$filtered_labels" | jq -r '.[0]')
+        env=$(echo "$labels" | jq -c '.[0]')
         echo "Environment label: $env"
         echo "env=$output" >> $GITHUB_OUTPUT
