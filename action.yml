@@ -13,7 +13,7 @@ inputs:
     required: true
 outputs:
   env:
-    value: ${{ steps.filter-labels.outputs.env }}
+    value: ${{ steps.fetch-labels.outputs.env }}
     description: "Environment label"
 runs:
   using: composite
