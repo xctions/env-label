@@ -40,7 +40,8 @@ runs:
       id: filter-labels
       shell: bash
       run: |
-        labels=${{ steps.fetch-labels.outputs.labels }}
+        labels="${{ steps.fetch-labels.outputs.labels }}"
+        echo "labels: $labels"
         len=$(echo "$labels" | jq 'length')
         echo "len: $len"
 
