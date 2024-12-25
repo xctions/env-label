@@ -34,14 +34,14 @@ runs:
         filtered_labels=$(echo "$labels_json" | jq -r '[.[] | select(.name == "dev" or .name == "test" or .name == "stag" or .name == "qa" or .name == "prod") | .name]')
         echo "filtered_labels: $filtered_labels"
 
-        echo "labels=$filered_labels" >> $GITHUB_OUTPUT
+        echo "labels=$filtered_labels" >> $GITHUB_OUTPUT
 
     - name: Filter env labels
       id: filter-labels
       shell: bash
       run: |
         labels=${{ steps.fetch-labels.outputs.labels }}
-        
+
         len=$(echo "$labels" | jq 'length')
         echo  "len: $len"
 
