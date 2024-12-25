@@ -36,13 +36,7 @@ runs:
 
         echo "labels=$filtered_labels" >> $GITHUB_OUTPUT
 
-    - name: Filter env labels
-      id: filter-labels
-      shell: bash
-      run: |
-        labels=${{ steps.fetch-labels.outputs.labels }}
-
-        len=$(echo "$labels" | jq 'length')
+        len=$(echo "$filtered_labels" | jq 'length')
         echo  "len: $len"
 
         if [ "$len" -ne 1 ]; then
@@ -50,6 +44,6 @@ runs:
           exit 1
         fi
 
-        env=$(echo "$labels" | jq -r '.[0]')
+        env=$(echo "$filtered_labels" | jq -r '.[0]')
         echo "Environment label: $env"
         echo "env=$output" >> $GITHUB_OUTPUT
