@@ -23,28 +23,102 @@ runs:
 
     - name: Fetch labels that a given PR has
       id: fetch-labels
-      shell: bash
+      shell: python
       env:
         GH_TOKEN: ${{ inputs.token }}
       run: |
-        echo "Fetching labels for PR #${{ inputs.pr_number }} in repository ${{ inputs.repository }}"
-        labels=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr_number }}/labels" --jq '.[].name')
-        echo "Raw labels: $labels"
-        labels=$(echo "$labels" | jq -r 'map(select(. == "dev" or . == "test" or . == "stag" or . == "qa" or . == "prod"))')
-        echo "Filtered labels: $labels"
-        echo "labels=$labels" >> $GITHUB_OUTPUT
+        import os
+        import subprocess
+        import json
+
+        token = os.getenv('GH_TOKEN')
+        pr_number = os.getenv('INPUT_PR_NUMBER')
+        repository = os.getenv('INPUT_REPOSITORY')
+
+        print(f"Fetching labels for PR #{pr_number} in repository {repository}")
+        result = subprocess.run(
+            ['gh', 'api', f'repos/{repository}/issues/{pr_number}/labels', '--jq', '.[].name'],
+            capture_output=True,
+            text=True,
+            env={'GH_TOKEN': token}
+        )
+        labels = result.stdout.strip()
+        print(f"Raw labels: {labels}")
+
+        labels_list = json.loads(labels)
+        filtered_labels = [label for label in labels_list if label in ["dev", "test", "stag", "qa", "prod"]]
+        print(f"Filtered labels: {filtered_labels}")
+
+        with open(os.getenv('GITHUB_OUTPUT'), 'a') as github_output:
+            github_output.write(f"labels={filtered_labels}\n")
 
     - name: Filter env labels
       id: filter-labels
-      shell: bash
-      env: 
+      shell: python
+      env:
         LABELS: ${{ steps.fetch-labels.outputs.labels }}
       run: |
-        echo "Filtering labels: $LABELS"
-        len=$(echo "$LABELS" | jq 'length')
-        if [ "$len" -ne 1 ]; then
-          echo "Error: Expected exactly one environment label, but found $len"
-          exit 1
-        fi
-        env=$(echo "$LABELS" | jq -r '.[0]')
-        echo "env=$env" >> $GITHUB_OUTPUT
+        import os
+        import json
+
+        labels = os.getenv('LABELS')
+        print(f"Filtering labels: {labels}")
+
+        labels_list = json.loads(labels)
+        if len(labels_list) != 1:
+            print(f"Error: Expected exactly one environment label, but found {len(labels_list)}")
+            exit(1)
+
+        env_label = labels_list[0]
+        with open(os.getenv('GITHUB_OUTPUT'), 'a') as github_output:
+            github_output.write(f"env={env_label}\n")
+# name: "Extract Env Label"
+# description: "A custom action to update a yaml property and create a PR if updated."
+
+# inputs:
+#   token:
+#     description: "GitHub token"
+#     required: true
+#   pr_number:
+#     description: "PR number"
+#     required: true
+#   repository:
+#     description: "Repository"
+#     required: true
+# outputs:
+#   env:
+#     value: ${{ steps.filter-labels.outputs.env }}
+#     description: "Environment label"
+# runs:
+#   using: composite
+#   steps:
+#     - name: Checkout repository
+#       uses: actions/checkout@v4
+
+#     - name: Fetch labels that a given PR has
+#       id: fetch-labels
+#       shell: bash
+#       env:
+#         GH_TOKEN: ${{ inputs.token }}
+#       run: |
+#         echo "Fetching labels for PR #${{ inputs.pr_number }} in repository ${{ inputs.repository }}"
+#         labels=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr_number }}/labels" --jq '.[].name')
+#         echo "Raw labels: $labels"
+#         labels=$(echo "$labels" | jq -r 'map(select(. == "dev" or . == "test" or . == "stag" or . == "qa" or . == "prod"))')
+#         echo "Filtered labels: $labels"
+#         echo "labels=$labels" >> $GITHUB_OUTPUT
+
+#     - name: Filter env labels
+#       id: filter-labels
+#       shell: bash
+#       env: 
+#         LABELS: ${{ steps.fetch-labels.outputs.labels }}
+#       run: |
+#         echo "Filtering labels: $LABELS"
+#         len=$(echo "$LABELS" | jq 'length')
+#         if [ "$len" -ne 1 ]; then
+#           echo "Error: Expected exactly one environment label, but found $len"
+#           exit 1
+#         fi
+#         env=$(echo "$LABELS" | jq -r '.[0]')
+#         echo "env=$env" >> $GITHUB_OUTPUT
