@@ -29,9 +29,17 @@ runs:
         REPOSITORY: ${{ inputs.repository }}
         PR_NUMBER: ${{ inputs.pr_number }}
       run: |
-        chmod +x ./fetch_labels.sh
-        output=$(./fetch_labels.sh)
-        echo "labels=$output" >> $GITHUB_OUTPUT
+        repo="repos/$REPOSITORY/issues/$PR_NUMBER/labels"
+
+        labels=$(gh api "$repo" --jq \
+            '.[].name'
+        )
+
+        labels=$(echo "$labels" | jq -r \
+            'map(select(. == "dev" or . == "test" or . == "stag" or . == "qa" or . == "prod"))'
+        )
+
+        echo "labels=$labels" >> $GITHUB_OUTPUT
 
     - name: Filter env labels
       id: filter-labels
@@ -39,6 +47,13 @@ runs:
       env: 
         LABELS: ${{ steps.fetch-labels.outputs.labels }}
       run: |
-        chmod +x ./filter_labels.sh
-        output=$(./filter_labels.sh)
+        len=$(echo "$LABELS" | jq 'length')
+
+        if [ "$len" -ne 1 ]; then
+          echo "Error: Expected exactly one environment label, but found $len"
+          exit 1
+        fi
+
+        env=$(echo "$labels" | jq -r '.[0]')
+
         echo "env=$output" >> $GITHUB_OUTPUT
