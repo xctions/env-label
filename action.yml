@@ -19,7 +19,7 @@ runs:
   using: composite
   steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Fetch labels that a given PR has
       id: fetch-labels
@@ -27,14 +27,11 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.token }}
       run: |
-        labels=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr_number }}/labels" --jq \
-            '.[].name'
-        )
-
-        labels=$(echo "$labels" | jq -r \
-            'map(select(. == "dev" or . == "test" or . == "stag" or . == "qa" or . == "prod"))'
-        )
-
+        echo "Fetching labels for PR #${{ inputs.pr_number }} in repository ${{ inputs.repository }}"
+        labels=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr_number }}/labels" --jq '.[].name')
+        echo "Raw labels: $labels"
+        labels=$(echo "$labels" | jq -r 'map(select(. == "dev" or . == "test" or . == "stag" or . == "qa" or . == "prod"))')
+        echo "Filtered labels: $labels"
         echo "labels=$labels" >> $GITHUB_OUTPUT
 
     - name: Filter env labels
@@ -43,13 +40,11 @@ runs:
       env: 
         LABELS: ${{ steps.fetch-labels.outputs.labels }}
       run: |
+        echo "Filtering labels: $LABELS"
         len=$(echo "$LABELS" | jq 'length')
-
         if [ "$len" -ne 1 ]; then
           echo "Error: Expected exactly one environment label, but found $len"
           exit 1
         fi
-
-        env=$(echo "$labels" | jq -r '.[0]')
-
-        echo "env=$output" >> $GITHUB_OUTPUT
+        env=$(echo "$LABELS" | jq -r '.[0]')
+        echo "env=$env" >> $GITHUB_OUTPUT
