@@ -26,14 +26,16 @@ runs:
       shell: python
       env:
         GH_TOKEN: ${{ inputs.token }}
+        REPOSITORY: ${{ inputs.repository }}
+        PR_NUMBER: ${{ inputs.pr_number }}
       run: |
         import os
         import subprocess
         import json
 
         token = os.getenv('GH_TOKEN')
-        pr_number = os.getenv('INPUT_PR_NUMBER')
-        repository = os.getenv('INPUT_REPOSITORY')
+        pr_number = os.getenv('PR_NUMBER')
+        repository = os.getenv('REPOSITORY')
 
         print(f"Fetching labels for PR #{pr_number} in repository {repository}")
         result = subprocess.run(
