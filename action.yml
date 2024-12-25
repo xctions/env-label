@@ -44,4 +44,4 @@ runs:
 
         env=$(echo "$labels" | jq -c '.[0]')
         echo "Environment label: $env"
-        echo "env=$output" >> $GITHUB_OUTPUT
+        echo "env=$env" >> $GITHUB_OUTPUT
