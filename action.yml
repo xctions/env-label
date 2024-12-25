@@ -13,7 +13,7 @@ inputs:
     required: true
 outputs:
   env:
-    value: ${{ steps.filter-labels.outputs.env }}
+    value: ${{ steps.label.outputs.env }}
     description: "Environment label"
 runs:
   using: composite
@@ -23,7 +23,7 @@ runs:
       uses: actions/checkout@v2
 
     - name: Fetch labels that a given PR has
-      id: fetch-labels
+      id: label
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
