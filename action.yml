@@ -22,8 +22,6 @@ runs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - uses: xctions/log@main
-
     - name: Fetch labels that a given PR has
       id: fetch-labels
       shell: bash
